@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Control Preventivo IMSS</title>
+<style>
+:root{
+  --bg:#0b0b0b;
+  --panel:#141414;
+  --gold:#c9a23f;
+  --gold-dark:#9f7f2e;
+  --text:#e6e6e6;
+  --muted:#a0a0a0;
+  --border:#2a2a2a;
+  --shadow:0 12px 26px rgba(0,0,0,.6);
+  --ok:#2ecc71;
+  --warn:#f39c12;
+  --bad:#e74c3c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Segoe UI,Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+.app{
+  display:grid;
+  grid-template-columns:260px 1fr;
+  min-height:100vh;
+}
+
+/* ===== SIDEBAR (NO SE MODIFICA ESTRUCTURA) ===== */
+.sidebar{
+  background:#0f0f0f;
+  border-right:1px solid var(--border);
+  padding:16px;
+}
+.sidebar-brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:24px;
+}
+.sidebar-brand-icon{
+  width:42px;height:42px;
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+  color:#111;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.sidebar-brand-text .title{
+  font-weight:800;
+  font-size:14px;
+}
+.sidebar-brand-text .sub{
+  font-size:12px;
+  color:var(--muted);
+}
+.nav a{
+  display:block;
+  padding:10px 12px;
+  border-radius:8px;
+  color:#ddd;
+  text-decoration:none;
+  font-size:13px;
+  margin-bottom:6px;
+}
+.nav a.active,
+.nav a:hover{
+  background:#161616;
+  color:var(--gold);
+}
+
+/* ===== MAIN ===== */
+.main{
+  padding:18px;
+}
+.header{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+  color:var(--gold);
+  font-weight:900;
+  margin-bottom:14px;
+}
+
+/* ===== CARDS ===== */
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  box-shadow:var(--shadow);
+  margin-bottom:14px;
+}
+.card h3{
+  font-size:13px;
+  color:var(--gold);
+  margin-bottom:6px;
+}
+.hint{
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* ===== UPLOAD ===== */
+input[type=file]{display:none}
+.upload{
+  border:1px dashed var(--border);
+  border-radius:10px;
+  padding:12px;
+  text-align:center;
+  cursor:pointer;
+  background:#0f0f0f;
+}
+.upload:hover{border-color:var(--gold)}
+
+.meta{
+  display:grid;
+  grid-template-columns:160px 1fr;
+  gap:6px 12px;
+  font-size:12px;
+  margin-top:10px;
+}
+.meta .k{color:var(--muted)}
+.meta .v{color:var(--gold);font-weight:800}
+
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+.pill{
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#0f0f0f;
+  font-size:12px;
+}
+.dot{
+  width:10px;height:10px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:6px;
+  background:#555;
+}
+.dot.ok{background:var(--ok)}
+.dot.warn{background:var(--warn)}
+.dot.bad{background:var(--bad)}
+
+.table-wrap{
+  margin-top:10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:auto;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+th,td{
+  padding:8px 10px;
+  border-bottom:1px solid #222;
+}
+th{
+  background:#111;
+  color:var(--gold);
+  position:sticky;
+  top:0;
+}
+
+/* ===== Extensiones (mismo look & feel) ===== */
+.table-wrap{overflow:auto; max-height:520px;}
+.select{width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:#0f1114; color:#fff;}
+.field label{display:block; font-size:12px; opacity:.8; margin-bottom:6px;}
+.hint{font-size:12px; opacity:.75; margin-top:6px;}
+.small{font-size:12px; opacity:.8;}
+.dot{width:10px; height:10px; border-radius:50%; display:inline-block; background:#555; margin-right:8px;}
+.dot.ok{background:#1db954;}
+.dot.bad{background:#ff4d4f;}
+.card{background:#121418; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:16px;}
+.grid{display:grid; grid-template-columns:repeat(12,1fr); gap:12px;}
+.row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+.btn{padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:#1a1d22; color:#fff; cursor:pointer;}
+.btn.primary{background:linear-gradient(180deg,#d9b76e,#b88a2b); color:#111; border:none;}
+.btn:disabled{opacity:.45; cursor:not-allowed;}
+.pill{display:inline-flex; gap:8px; align-items:center; padding:8px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);}
+.badge{padding:4px 8px; border-radius:999px; font-size:12px; background:rgba(217,183,110,.12); border:1px solid rgba(217,183,110,.35); color:#d9b76e;}
+.input{width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:#0f1114; color:#fff;}
+
+
+/* Acciones (dropdown) */
+.actions-dd{ position:relative; display:inline-block; }
+.actions-dd > summary{ list-style:none; cursor:pointer; }
+.actions-dd > summary::-webkit-details-marker{ display:none; }
+.actions-dd[open] > summary{ border-color: var(--gold); }
+.dd-menu{
+  position:absolute;
+  right:0;
+  top:calc(100% + 8px);
+  min-width:180px;
+  background: #151515;
+  border:1px solid rgba(255,215,0,0.22);
+  border-radius:12px;
+  padding:6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  z-index:50;
+}
+.dd-item{
+  width:100%;
+  text-align:left;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  padding:10px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+}
+.dd-item:hover{ background: rgba(255,215,0,0.10); }
+
+
+/* Dropdown (Acciones) */
+.dd{ position:relative; display:inline-block; }
+.dd-btn{ padding:10px 12px; border-radius:14px; }
+.dd-menu{
+  position:absolute; right:0; top:46px;
+  min-width:180px;
+  background: rgba(18,18,18,.98);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.45);
+  padding:8px;
+  display:none;
+  z-index:50;
+}
+.dd.open .dd-menu{ display:block; }
+.dd-item{
+  width:100%;
+  text-align:left;
+  background: transparent;
+  border: 0;
+  color: rgba(255,255,255,.92);
+  padding:10px 12px;
+  border-radius:12px;
+  cursor:pointer;
+}
+.dd-item:hover{
+  background: rgba(255,255,255,.06);
+}
+td.status{ white-space:nowrap; }
+
+
+.status-select{
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+}
+.status-select option{ background:#111; color:#fff; }
+
+</style>
+</head>
+<body>
+<div class="app">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+<div class="sidebar-brand">
+<div class="sidebar-brand-icon">IM</div>
+<div class="sidebar-brand-text">
+<div class="title">Control Preventivo IMSS</div>
+<div class="sub">SUA · EMA · INFONAVIT</div>
+</div>
+</div>
+<nav class="nav" id="nav">
+<a class="active" data-view="empresas" href="#" id="navEmpresas">Mis Empresas</a>
+<a data-view="carga" href="#" id="navCarga">Carga de archivos</a>
+<a class="disabled" data-view="mensual" href="#" id="navMensual">Confronta mensual</a>
+<a class="disabled" data-view="bimestral" href="#" id="navBimestral">Confronta bimestral</a>
+<a class="disabled" data-view="reportes" href="#" id="navReportes">Reportes</a>
+</nav>
+</aside>
+<!-- MAIN -->
+<main class="main">
+<div class="header">
+<div>
+<div id="pageTitle" style="font-weight:800; letter-spacing:.5px;">MIS EMPRESAS</div>
+<div style="font-size:12px; opacity:.75; margin-top:4px;">SUA · EMA · INFONAVIT</div>
+</div>
+<div class="row" style="justify-content:flex-end;">
+<div class="pill"><span class="k">Empresa activa:</span> <b class="v" id="activeCompanyLbl">—</b></div>
+<div class="pill"><span class="k">Estado:</span> <b class="v" id="systemStatusLbl">Listo</b></div>
+</div>
+</div>
+<div class="content">
+<!-- VIEW: EMPRESAS -->
+<section id="view-empresas">
+<div class="card">
+<div class="row" style="justify-content:space-between;">
+<div>
+<h3 style="margin:0;">Mis Empresas</h3>
+<div class="hint">Alta de empresas con candados: no se elimina; solo se archiva.</div>
+</div>
+<button class="btn primary" id="btnNueva">+ Nueva empresa</button>
+</div>
+<div class="table-wrap" id="empresasTableWrap" style="margin-top:12px;">
+<table>
+<thead>
+<tr>
+<th>Empresa</th>
+<th>RFC</th>
+<th>Registros Patronales</th>
+<th>Estatus</th>
+<th style="width:160px;">Editar</th>
+</tr>
+</thead>
+<tbody id="empresasBody"></tbody>
+</table>
+</div>
+<div class="small" style="margin-top:10px;">Tip: activa una empresa para habilitar la carga y validaciones.</div>
+</div>
+<div class="card" id="empresaFormCard" style="margin-top:12px; display:none;">
+<div class="row" style="justify-content:space-between;">
+<h3 id="formTitle" style="margin:0;">Nueva empresa</h3>
+<span class="badge">Candados: no se elimina</span>
+</div>
+<div class="grid" style="margin-top:12px;">
+<div class="field" style="grid-column:span 6;">
+<label>Nombre corto (para operación)</label>
+<input class="input" id="fNombre" placeholder="Ej. Palitos"/>
+</div>
+<div class="field" style="grid-column:span 6;">
+<label>Razón social (opcional por ahora)</label>
+<input class="input" id="fRazon" placeholder="Razón social"/>
+</div>
+<div class="field" style="grid-column:span 4;">
+<label>RFC</label>
+<input class="input" id="fRFC" placeholder="XAXX010101000"/>
+</div>
+<div class="field" style="grid-column:span 4;">
+<label>Correo (opcional)</label>
+<input class="input" id="fEmail" placeholder="correo@dominio.com"/>
+</div>
+<div class="field" style="grid-column:span 4;">
+<label>Teléfono (opcional)</label>
+<input class="input" id="fPhone" placeholder="55..."/>
+</div>
+<div class="field" style="grid-column:span 8;">
+<label>Registros Patronales (uno por línea)</label>
+<textarea class="input" id="fRPs" placeholder="RP1
+RP2" rows="4"></textarea>
+<div class="hint">Se validará contra los archivos cargados.</div>
+</div>
+<div class="field" style="grid-column:span 4;">
+<label>Estatus</label>
+<select class="select" id="fStatus">
+<option value="ACTIVA">ACTIVA</option>
+<option value="ARCHIVADA">ARCHIVADA</option>
+</select>
+<div class="hint">Archivada conserva histórico pero no permite nuevas cargas.</div>
+</div>
+</div>
+<div class="row" style="justify-content:flex-end; margin-top:12px;">
+<button class="btn" id="btnCancelar">Cancelar</button>
+<button class="btn primary" id="btnGuardar">Guardar empresa</button>
+</div>
+</div>
+</section>
+<!-- VIEW: CARGA -->
+<section id="view-carga" style="display:none;">
+<div class="card">
+<h3 style="margin:0;">Carga de Información</h3>
+<div class="hint">Orden obligatorio: primero <b>SUA (Empresa)</b>. Después <b>EMA/EBA (IMSS)</b>.</div>
+<div class="grid" style="margin-top:12px;">
+<div class="field" style="grid-column:span 6;">
+<label>Empresa activa</label>
+<select class="select" id="selEmpresaCarga"></select>
+<div class="small" id="empresaCargaHelp">—</div>
+</div>
+<div class="field" style="grid-column:span 6;">
+<label>Registros patronales registrados</label>
+<div class="pill" style="width:100%; justify-content:space-between;">
+<span id="rpsListTxt">—</span>
+<span class="small">Solo lectura</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid" style="margin-top:12px;">
+<div class="card" style="grid-column:1 / -1;">
+<div class="row" style="justify-content:space-between; align-items:flex-start;">
+<div>
+<h3 style="margin:0;">SUA</h3>
+<div class="small">Fuente: <b>Empresa</b></div>
+</div>
+<div class="pill"><span class="small">Primero</span></div>
+</div>
+<div class="row" style="margin-top:12px;">
+<input id="fileSUA" style="display:none" type="file"/>
+<button class="btn primary" id="btnSUA">Cargar SUA</button>
+<div class="pill"><span class="dot" id="dotSUA"></span><span id="txtSUA">Pendiente</span></div>
+</div>
+<div class="small" id="msgSUA" style="margin-top:10px;">—</div>
+</div>
+<div class="card" style="grid-column:span 6;">
+<h3 style="margin:0;">EMA</h3>
+<div class="small">Fuente: <b>IMSS</b> (Emisión Mensual)</div>
+<div class="row" style="margin-top:12px;">
+<input id="fileEMA" style="display:none" type="file"/>
+<button class="btn primary" id="btnEMA">Cargar EMA</button>
+<div class="pill"><span class="dot" id="dotEMA"></span><span id="txtEMA">Pendiente</span></div>
+</div>
+<div class="small" id="msgEMA" style="margin-top:10px;">—</div>
+</div>
+<div class="card" style="grid-column:span 6;">
+<h3 style="margin:0;">EBA</h3>
+<div class="small">Fuente: <b>IMSS</b> (Emisión Bimestral)</div>
+<div class="row" style="margin-top:12px;">
+<input id="fileEBA" style="display:none" type="file"/>
+<button class="btn primary" id="btnEBA">Cargar EBA</button>
+<div class="pill"><span class="dot" id="dotEBA"></span><span id="txtEBA">Pendiente</span></div>
+</div>
+<div class="small" id="msgEBA" style="margin-top:10px;">—</div>
+</div>
+</div>
+<div class="card" style="margin-top:12px;">
+<h3 style="margin:0;">Resumen de validación</h3>
+<div class="hint">Maqueta: hoy solo valida selección de empresa y orden. La validación dura RFC/RP/Periodo se conecta en el siguiente paso.</div>
+<div class="table-wrap" style="margin-top:10px;">
+<table>
+<thead><tr><th>Chequeo</th><th>Estatus</th><th>Detalle</th></tr></thead>
+<tbody>
+<tr><td>Empresa seleccionada</td><td><span class="pill"><span class="dot" id="dotChkEmpresa"></span><span id="txtChkEmpresa">—</span></span></td><td class="small" id="detChkEmpresa">—</td></tr>
+<tr><td>SUA cargado</td><td><span class="pill"><span class="dot" id="dotChkSUA"></span><span id="txtChkSUA">—</span></span></td><td class="small" id="detChkSUA">—</td></tr>
+<tr><td>EMA cargado</td><td><span class="pill"><span class="dot" id="dotChkEMA"></span><span id="txtChkEMA">—</span></span></td><td class="small" id="detChkEMA">—</td></tr>
+<tr><td>EBA cargado</td><td><span class="pill"><span class="dot" id="dotChkEBA"></span><span id="txtChkEBA">—</span></span></td><td class="small" id="detChkEBA">—</td></tr>
+<tr><td>Orden (SUA primero)</td><td><span class="pill"><span class="dot" id="dotChkOrden"></span><span id="txtChkOrden">—</span></span></td><td class="small" id="detChkOrden">—</td></tr>
+</tbody>
+</table>
+</div>
+<div class="row" style="justify-content:space-between; margin-top:10px;">
+<button class="btn" id="btnLimpiarCarga">Limpiar carga</button>
+</div>
+<div class="small" id="bloqueoMsg" style="margin-top:8px;">—</div>
+</div>
+</section>
+<section id="view-mensual" style="display:none;"><div class="card"><h3 style="margin:0;">Confronta mensual</h3><div class="hint">Pendiente.</div></div></section>
+<section id="view-bimestral" style="display:none;"><div class="card"><h3 style="margin:0;">Confronta bimestral</h3><div class="hint">Pendiente.</div></div></section>
+<section id="view-reportes" style="display:none;"><div class="card"><h3 style="margin:0;">Reportes</h3><div class="hint">Pendiente.</div></div></section>
+<section id="view-config" style="display:none;"><div class="card"><h3 style="margin:0;">Configuración</h3><div class="hint">Licencias se integra al final.</div></div></section>
+<section id="view-ayuda" style="display:none;"><div class="card"><h3 style="margin:0;">Ayuda / Soporte</h3><div class="hint">Pendiente.</div></div></section>
+</div>
+</main>
+</div>
+<script>
+
+
+
+
+/* ====== STORAGE ====== */
+const LS_COMPANIES = "cp_imss_companies_v1";
+function loadCompanies(){ try{ return JSON.parse(localStorage.getItem(LS_COMPANIES)||"[]"); }catch(e){ return []; } }
+function saveCompanies(arr){ localStorage.setItem(LS_COMPANIES, JSON.stringify(arr||[])); }
+
+/* ====== HELPERS ====== */
+function text(id, v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+function setDot(id, cls){ const el=document.getElementById(id); if(!el) return; el.className="dot" + (cls ? " "+cls : ""); }
+function esc(s){ return (s||"").replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;" }[c])); }
+
+/* ====== NAV ====== */
+const titles = {
+    empresas:"MIS EMPRESAS",
+    carga:"CARGA DE ARCHIVOS",
+    mensual:"CONFRONTA MENSUAL",
+    bimestral:"CONFRONTA BIMESTRAL",
+    reportes:"REPORTES"
+  };
+function setView(v){
+  document.querySelectorAll('section[id^="view-"]').forEach(s=>s.style.display="none");
+  const sec=document.getElementById("view-"+v);
+  if(sec) sec.style.display="";
+  text("pageTitle", titles[v] || "");
+  document.querySelectorAll("#nav a[data-view]").forEach(a=>{
+    a.classList.toggle("active", a.getAttribute("data-view")===v);
+  });
+  if(v==="carga"){ loadCompaniesForCarga(); refreshCargaChecklist(); }
+}
+function wireNav(){
+  document.querySelectorAll("#nav a[data-view]").forEach(a=>{
+    a.addEventListener("click", (e)=>{
+      e.preventDefault();
+      if(a.classList.contains("disabled")) return;
+      setView(a.getAttribute("data-view"));
+    });
+  });
+}
+
+/* ====== EMPRESAS ====== */
+function renderCompanies(){
+  const body = document.getElementById("empresasBody");
+  if(!body) return;
+  const companies = loadCompanies();
+
+  if(!companies.length){
+    body.innerHTML = '<tr><td colspan="5" class="small">Sin empresas registradas.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = companies.map(c=>{
+    const rps = (c.rps||[]).join(" · ");
+    return `<tr>
+      <td><b>${esc(c.name)}</b></td>
+      <td>${esc(c.rfc)}</td>
+      <td class="small">${esc(rps || "—")}</td>
+      <td>
+        <select class="status-select" data-id="${c.id}">
+          <option value="ACTIVA" ${!c.archived?"selected":""}>ACTIVA</option>
+          <option value="ARCHIVADA" ${c.archived?"selected":""}>ARCHIVADA</option>
+        </select>
+      </td>
+      <td style="white-space:nowrap;">
+        <button class="btn" data-act="edit" data-id="${c.id}">Editar</button>
+      </td>
+    </tr>`;
+  }).join("");
+
+  // Editar
+  body.querySelectorAll("button[data-act='edit'][data-id]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.getAttribute("data-id");
+      const companies = loadCompanies();
+      const idx = companies.findIndex(x=>x.id===id);
+      if(idx<0) return;
+
+      const c = companies[idx];
+      window.__EDIT_EMPRESA_ID__ = id;
+
+      const cardForm = document.getElementById("empresaFormCard");
+      if(cardForm){
+        cardForm.style.display="";
+        text("formTitle","Editar empresa");
+        const fNombre=document.getElementById("fNombre"); if(fNombre) fNombre.value = c.name || "";
+        const fRazon=document.getElementById("fRazon"); if(fRazon) fRazon.value = c.razon || "";
+        const fRFC=document.getElementById("fRFC"); if(fRFC) fRFC.value = c.rfc || "";
+        const fEmail=document.getElementById("fEmail"); if(fEmail) fEmail.value = c.email || "";
+        const fPhone=document.getElementById("fPhone"); if(fPhone) fPhone.value = c.phone || "";
+        const fRPs=document.getElementById("fRPs"); if(fRPs) fRPs.value = (c.rps||[]).join("\n");
+        const st=document.getElementById("fStatus"); if(st) st.value = c.archived ? "ARCHIVADA" : "ACTIVA";
+        cardForm.scrollIntoView({behavior:"smooth", block:"start"});
+      }
+    });
+  });
+
+  // Estatus (Activo/Archivado)
+  body.querySelectorAll("select.status-select[data-id]").forEach(sel=>{
+    sel.addEventListener("change", ()=>{
+      const id = sel.getAttribute("data-id");
+      const val = sel.value;
+      const companies = loadCompanies();
+      const idx = companies.findIndex(x=>x.id===id);
+      if(idx<0) return;
+
+      companies[idx].archived = (val === "ARCHIVADA");
+      saveCompanies(companies);
+      loadCompaniesForCarga();
+      renderCompanies();
+    });
+  });
+}
+
+function wireCompanyActionsDropdowns(){
+  function closeAll(){
+    document.querySelectorAll(".dd.open").forEach(d=>d.classList.remove("open"));
+  }
+  document.querySelectorAll(".dd .dd-btn").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const dd = btn.closest(".dd");
+      const isOpen = dd.classList.contains("open");
+      closeAll();
+      if(!isOpen) dd.classList.add("open");
+    });
+  });
+
+  document.querySelectorAll(".dd .dd-item[data-action]").forEach(it=>{
+    it.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const dd = it.closest(".dd");
+      const id = dd.getAttribute("data-id");
+      const action = it.getAttribute("data-action");
+      const companies = loadCompanies();
+      const c = companies.find(x=>x.id===id);
+      if(!c) return;
+
+      if(action === "editar"){
+        window.__EDIT_EMPRESA_ID__ = id;
+        const cardForm = document.getElementById("empresaFormCard");
+        if(cardForm){
+          cardForm.style.display = "";
+          const fNombre=document.getElementById("fNombre"); if(fNombre) fNombre.value = c.name || "";
+          const fRazon=document.getElementById("fRazon"); if(fRazon) fRazon.value = c.razon || "";
+          const fRFC=document.getElementById("fRFC"); if(fRFC) fRFC.value = c.rfc || "";
+          const fEmail=document.getElementById("fEmail"); if(fEmail) fEmail.value = c.email || "";
+          const fPhone=document.getElementById("fPhone"); if(fPhone) fPhone.value = c.phone || "";
+          const fRPs=document.getElementById("fRPs"); if(fRPs) fRPs.value = (c.rps||[]).join("\n");
+          const fStatus=document.getElementById("fStatus"); if(fStatus) fStatus.value = c.archived ? "ARCHIVADA" : "ACTIVA";
+
+          text("formTitle","Editar empresa");
+          cardForm.scrollIntoView({behavior:"smooth", block:"start"});
+        }
+        closeAll();
+        return;
+      }
+      if(action === "archivar") c.archived = true;
+      if(action === "activar") c.archived = false;
+
+      saveCompanies(companies);
+      window.__EDIT_EMPRESA_ID__ = "";
+      renderCompanies();
+      loadCompaniesForCarga();
+      closeAll();
+    });
+  });
+
+  document.addEventListener("click", closeAll, { once: true });
+}
+
+function wireEmpresasButtons(){
+  const btnNueva = document.getElementById("btnNueva");
+  const cardForm = document.getElementById("empresaFormCard");
+  const btnCancelar = document.getElementById("btnCancelar");
+  const btnGuardar = document.getElementById("btnGuardar");
+
+  if(btnNueva && cardForm){
+    btnNueva.addEventListener("click", ()=>{
+      window.__EDIT_EMPRESA_ID__ = "";
+      cardForm.style.display="";
+      cardForm.scrollIntoView({behavior:"smooth", block:"start"});
+      text("formTitle","Nueva empresa");
+      ["fNombre","fRazon","fRFC","fEmail","fPhone","fRPs"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+      const st=document.getElementById("fStatus"); if(st) st.value="ACTIVA";
+    });
+  }
+  if(btnCancelar && cardForm){
+    btnCancelar.addEventListener("click", ()=>{ cardForm.style.display="none"; });
+  }
+  if(btnGuardar){
+    btnGuardar.addEventListener("click", ()=>{
+      const nombre=(document.getElementById("fNombre")?.value||"").trim();
+      const razon=(document.getElementById("fRazon")?.value||"").trim();
+      const rfc=(document.getElementById("fRFC")?.value||"").trim().toUpperCase();
+      const email=(document.getElementById("fEmail")?.value||"").trim();
+      const phone=(document.getElementById("fPhone")?.value||"").trim();
+      const status=(document.getElementById("fStatus")?.value||"ACTIVA").trim();
+      const rpsRaw=(document.getElementById("fRPs")?.value||"").trim();
+
+      if(!nombre || !rfc){ alert("Falta Nombre y RFC."); return; }
+
+      const rps=rpsRaw.split(/\n|,|;/).map(x=>x.trim()).filter(Boolean);
+
+      const companies = loadCompanies();
+      const id = window.__EDIT_EMPRESA_ID__ || ("C-" + Math.random().toString(16).slice(2,10));
+
+      const incomingRPs = rps.map(r=>String(r).trim().toUpperCase()).filter(Boolean);
+      const existingCompanies = companies.filter(x => x.id !== id);
+      const allExistingRPs = existingCompanies
+        .flatMap(x => (x.rps||[]).map(r=>String(r).trim().toUpperCase()))
+        .filter(Boolean);
+
+      const conflictRP = incomingRPs.find(rp => allExistingRPs.includes(rp));
+      if(conflictRP){
+        alert("Registro Patronal duplicado: " + conflictRP + "\nNo puedes registrar una empresa con un RP ya existente.");
+        return;
+      }
+
+      const obj = { id, name:nombre, razon, rfc, email, phone, rps, archived:(status==="ARCHIVADA") };
+      const idx = companies.findIndex(x=>x.id===id);
+      if(idx>=0) companies[idx] = { ...companies[idx], ...obj };
+      else companies.push(obj);
+      saveCompanies(companies);
+      window.__EDIT_EMPRESA_ID__ = "";
+      renderCompanies();
+      loadCompaniesForCarga();
+      cardForm.style.display="none";
+      alert("Empresa guardada.");
+    });
+  }
+}
+
+/* ====== CARGA ====== */
+const cargaState = { empresaId:"", sua:null, ema:null, eba:null };
+function loadCompaniesForCarga(){
+  const sel=document.getElementById("selEmpresaCarga");
+  if(!sel) return;
+  const companies=loadCompanies();
+  sel.innerHTML="";
+  sel.appendChild(new Option("— Selecciona empresa —",""));
+
+  // ✅ En carga: mostrar nombre completo (razón social si existe); sin RFC
+  companies.forEach(c=>{
+    const displayName = (c.razon && c.razon.trim()) ? c.razon.trim() : (c.name || "");
+    sel.appendChild(new Option(`${displayName}`, c.id));
+  });
+
+  const activeId = localStorage.getItem("cp_imss_active_company") || "";
+  if(activeId && companies.some(c=>c.id===activeId)) cargaState.empresaId = activeId;
+  sel.value = cargaState.empresaId || "";
+  refreshEmpresaCargaPanel();
+}
+
+function refreshEmpresaCargaPanel(){
+  const c=loadCompanies().find(x=>x.id===cargaState.empresaId);
+  if(!c){
+    text("empresaCargaHelp","Selecciona una empresa activa para habilitar la carga.");
+    text("rpsListTxt","—");
+    return;
+  }
+  const rps=(c.rps||[]).filter(Boolean);
+
+  // ✅ En carga: NO mostrar RFC. Solo RP registrados.
+  text("empresaCargaHelp", `RP registrados: ${rps.length}`);
+  text("rpsListTxt", rps.length ? rps.join("  ·  ") : "Sin RP registrados");
+
+  // ✅ En header: mostrar nombre completo (razón social si existe)
+  const displayName = (c.razon && c.razon.trim()) ? c.razon.trim() : (c.name || "");
+  text("activeCompanyLbl", displayName);
+}
+
+function refreshCargaChecklist(){
+  const c=loadCompanies().find(x=>x.id===cargaState.empresaId);
+  const empresaOk=!!c;
+  setDot("dotChkEmpresa", empresaOk ? "ok":"bad");
+  text("txtChkEmpresa", empresaOk ? "OK":"Bloqueado");
+
+  // Detalle: mostrar nombre completo (razón social si existe). Sin RFC.
+  if(empresaOk){
+    const displayName = (c.razon && c.razon.trim()) ? c.razon.trim() : (c.name || "");
+    text("detChkEmpresa", displayName);
+  }else{
+    text("detChkEmpresa", "Selecciona empresa");
+  }
+
+  const suaOk=!!cargaState.sua;
+  const emaOk=!!cargaState.ema;
+  const ebaOk=!!cargaState.eba;
+
+  setDot("dotChkSUA", suaOk ? "ok":"");
+  text("txtChkSUA", suaOk ? "OK":"Pendiente");
+  text("detChkSUA", suaOk ? (cargaState.sua.name || "") : "Carga SUA");
+
+  setDot("dotChkEMA", emaOk ? "ok":"");
+  text("txtChkEMA", emaOk ? "OK":"Pendiente");
+  text("detChkEMA", emaOk ? (cargaState.ema.name || "") : "Carga EMA");
+
+  setDot("dotChkEBA", ebaOk ? "ok":"");
+  text("txtChkEBA", ebaOk ? "OK":"Pendiente");
+  text("detChkEBA", ebaOk ? (cargaState.eba.name || "") : "Carga EBA");
+
+  const ordenOk = suaOk ? true : (!emaOk && !ebaOk);
+  setDot("dotChkOrden", ordenOk ? "ok":"bad");
+  text("txtChkOrden", ordenOk ? "OK":"Bloqueado");
+  text("detChkOrden", ordenOk ? "Correcto" : "Debes cargar SUA antes de EMA/EBA");
+
+  setDot("dotSUA", suaOk ? "ok":"");
+  text("txtSUA", suaOk ? "Cargado":"Pendiente");
+  setDot("dotEMA", emaOk ? "ok":"");
+  text("txtEMA", emaOk ? "Cargado":"Pendiente");
+  setDot("dotEBA", ebaOk ? "ok":"");
+  text("txtEBA", ebaOk ? "Cargado":"Pendiente");
+
+  const canContinue = empresaOk && suaOk && ordenOk;
+const statusLbl = document.getElementById("systemStatusLbl");
+if(statusLbl){
+  statusLbl.textContent = canContinue ? "Listo" : "Bloqueado";
+}
+
+  text("bloqueoMsg", canContinue ? "Listo para confronta mensual (maqueta)." : "Bloqueo: empresa seleccionada + SUA primero.");
+}
+
+function wireCargaButtons(){
+  const sel=document.getElementById("selEmpresaCarga");
+  if(sel){
+    sel.addEventListener("change", ()=>{
+      cargaState.empresaId = sel.value;
+      localStorage.setItem("cp_imss_active_company", sel.value||"");
+      
+  const empresa = loadCompanies().find(c=>c.id===sel.value);
+  window.empresaActiva = empresa || null;
+refreshEmpresaCargaPanel();
+      refreshCargaChecklist();
+    });
+  }
+
+  function bind(btnId, fileId, kind){
+    const btn=document.getElementById(btnId);
+    const inp=document.getElementById(fileId);
+    if(!btn || !inp) return;
+    btn.addEventListener("click", ()=>{
+      if(!cargaState.empresaId){ alert("Selecciona una empresa activa."); return; }
+      if((kind==="EMA"||kind==="EBA") && !cargaState.sua){ alert("Primero carga SUA."); return; }
+      inp.click();
+    });
+    inp.addEventListener("change", ()=>{
+      const f=inp.files && inp.files[0];
+      if(!f) return;
+
+      // ✅ Mantiene la modificación anterior: guardar el archivo real (File) y no solo el nombre
+      if(kind==="SUA"){ cargaState.sua=f; text("msgSUA","Archivo: "+f.name); }
+      if(kind==="EMA"){ cargaState.ema=f; text("msgEMA","Archivo: "+f.name); }
+      if(kind==="EBA"){ cargaState.eba=f; text("msgEBA","Archivo: "+f.name); }
+
+      refreshCargaChecklist();
+    });
+  }
+  bind("btnSUA","fileSUA","SUA");
+  bind("btnEMA","fileEMA","EMA");
+  bind("btnEBA","fileEBA","EBA");
+
+  const btnLimpiar=document.getElementById("btnLimpiarCarga");
+  if(btnLimpiar){
+    btnLimpiar.addEventListener("click", ()=>{
+      ["fileSUA","fileEMA","fileEBA"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+      cargaState.sua=null; cargaState.ema=null; cargaState.eba=null;
+      text("msgSUA","—"); text("msgEMA","—"); text("msgEBA","—");
+      refreshCargaChecklist();
+    });
+  }
+}
+
+/* ===== INIT ===== */
+(function init(){
+  // 🔥 Limpieza solicitada: eliminar empresas previamente cargadas (localStorage) para iniciar en limpio.
+  localStorage.removeItem(LS_COMPANIES);
+  localStorage.removeItem("cp_imss_active_company");
+  wireNav();
+  wireEmpresasButtons();
+  renderCompanies();
+  const activeId = localStorage.getItem("cp_imss_active_company") || "";
+  const c = loadCompanies().find(x=>x.id===activeId);
+  if(c){
+    const displayName = (c.razon && c.razon.trim()) ? c.razon.trim() : (c.name || "");
+    text("activeCompanyLbl", displayName);
+  }
+  setView("empresas");
+  loadCompaniesForCarga();
+  wireCargaButtons();
+  refreshCargaChecklist();
+})();
+</script>
+<script>
+/* ================================
+   PERSISTENCIA DE EMPRESAS Y ESTADO
+   ================================ */
+
+function normalize(txt){
+  return txt.toUpperCase().replace(/[.,]/g,'').replace(/\s+/g,' ').trim();
+}
+
+// ----- EMPRESAS -----
+function cargarEmpresas(){
+  const e = localStorage.getItem("empresas");
+  return e ? JSON.parse(e) : [];
+}
+
+function guardarEmpresas(empresas){
+  localStorage.setItem("empresas", JSON.stringify(empresas));
+}
+
+function agregarEmpresa(empresa){
+  const empresas = cargarEmpresas();
+  empresas.push(empresa);
+  guardarEmpresas(empresas);
+}
+
+function setEmpresaActiva(id){
+  localStorage.setItem("empresaActivaId", id);
+}
+
+function getEmpresaActiva(){
+  const id = localStorage.getItem("empresaActivaId");
+  if(!id) return null;
+  return cargarEmpresas().find(e => e.id === id) || null;
+}
+
+// ----- VALIDACIONES -----
+function validarSUA(datos, empresa){
+  if(
+    normalize(datos.nombre) !== normalize(empresa.nombre) ||
+    normalize(datos.rfc)    !== normalize(empresa.rfc) ||
+    normalize(datos.rp)     !== normalize(empresa.rp)
+  ){
+    alert("El archivo no corresponde a la empresa registrada.\n\nPara continuar es necesario reiniciar el proceso.");
+    return false;
+  }
+  return true;
+}
+
+function validarIMSS(datos, empresa){
+  if(
+    normalize(datos.nombre) !== normalize(empresa.nombre) ||
+    normalize(datos.rp)     !== normalize(empresa.rp)
+  ){
+    alert("El archivo no corresponde a la empresa registrada.\n\nPara continuar es necesario reiniciar el proceso.");
+    return false;
+  }
+  return true;
+}
+
+// ----- RESTAURACIÓN -----
+document.addEventListener("DOMContentLoaded", ()=>{
+  const empresas = cargarEmpresas();
+  const activa = getEmpresaActiva();
+
+  if(empresas.length){
+    console.log("Empresas restauradas:", empresas);
+  }
+  if(activa){
+    console.log("Empresa activa:", activa.nombre);
+  }
+});
+</script></body>
+</html>
