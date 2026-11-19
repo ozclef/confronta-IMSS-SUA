@@ -6,4 +6,13 @@ Facilitar la conciliación de nómina para empresas mexicanas, identificando dis
 
 
 ###  INFONAVIT
+
+
+
+
 <img width="1574" height="750" alt="image" src="https://github.com/user-attachments/assets/c9772707-7a49-41d6-be3b-9f55ced09515" />
+
+
+
+
+![Uploading image.png…]()
