@@ -14,5 +14,9 @@ Facilitar la conciliación de nómina para empresas mexicanas, identificando dis
 
 
 
+<img width="1570" height="1097" alt="image" src="https://github.com/user-attachments/assets/1168ab94-3d50-475b-aa65-32d347c08f68" />
+
+
+
 
 ![Uploading image.png…]()
